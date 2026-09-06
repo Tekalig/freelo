@@ -20,6 +20,14 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@app/lib": [
+        "libs/lib/src"
+      ],
+      "@app/lib/*": [
+        "libs/lib/src/*"
+      ]
+    }
   }
 }
