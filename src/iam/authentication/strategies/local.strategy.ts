@@ -1,6 +1,5 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { SignInDto } from '../dto/sign-in.dto';
 import { AuthService } from '../auth.service';
 import { Inject, UnauthorizedException } from '@nestjs/common';
 

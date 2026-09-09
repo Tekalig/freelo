@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,11 +9,7 @@ import { Repository } from 'typeorm';
 import { HashingService } from '../hashing/hashing.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import jwtConfig from 'src/config/jwt.config';
-import * as config from '@nestjs/config';
 import { UsersService } from 'src/users/users.service';
-import { randomUUID } from 'crypto';
 import express from 'express';
 import { TwoFaService } from './2fa/two-fa.service';
 

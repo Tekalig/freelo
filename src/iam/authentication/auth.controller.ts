@@ -58,7 +58,10 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Res() res: express.Response, @Req() req: express.Request) {
+  logout(
+    @Res({ passthrough: true }) res: express.Response,
+    @Req() req: express.Request,
+  ) {
     return new Promise((resolve) => {
       req.session.destroy(() => {
         res.clearCookie('connect.id');
