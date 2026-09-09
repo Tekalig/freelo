@@ -1,7 +1,6 @@
 export enum AuthType {
-  Cookies,
+  Session,
   Local,
-  Refresh,
   ApiKey,
   None,
 }

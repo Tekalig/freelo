@@ -4,17 +4,18 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
 } from '@nestjs/common';
-import express from 'express';
-import { AuthService } from './auth.service';
-import { SignUpDto } from './dto/sign-up.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import express from 'express';
 import { Auth } from './decorators/auth.decorator';
 import { AuthType } from './enums/auth-type.enum';
 import { ActiveUser } from '../decorators/active-user.decorator';
 import { SignInDto } from './dto/sign-in.dto';
-import { LoginTwoFaDto } from './2fa/dto/login-2fa.dto';
+import { VerifyTwoFaDto } from './2fa/dto/verify-2fa.dto';
+import { AuthService } from './auth.service';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -31,82 +32,38 @@ export class AuthController {
   @Auth(AuthType.Local)
   @ApiBody({ type: SignInDto })
   @Post('login')
-  async signIn(
+  async login(
     @ActiveUser()
-    user: { id: string; email: string; emailVerified: boolean; plan: string },
-    @Res({ passthrough: true }) res: express.Response,
+    user: {
+      id: string;
+      email: string;
+      emailVerified: boolean;
+      plan: string;
+      isTwoFaEnabled: boolean;
+    },
+    @Req() req: express.Request,
   ) {
-    const result = await this.authService.signIn(
-      user.id,
-      user.email,
-      user.emailVerified,
-      user.plan,
-    );
-
-    if ('requiresTwoFactor' in result) {
-      return result;
-    }
-
-    this.authService.setAuthCookies(
-      res,
-      result.accessToken,
-      result.refreshToken,
-    );
-
-    return {
-      message: 'login successfully!!',
-    };
+    return this.authService.signIn(user, req);
   }
 
   @HttpCode(HttpStatus.OK)
   @Auth(AuthType.None)
+  @ApiBody({ type: VerifyTwoFaDto })
   @Post('login/2fa')
   async loginTwoFa(
-    @Body() dto: LoginTwoFaDto,
-    @Res({ passthrough: true }) res: express.Response,
+    @Body() dto: { token: string },
+    @Req() req: express.Request,
   ) {
-    const { accessToken, refreshToken } =
-      await this.authService.loginWithTwoFactor(dto.pendingToken, dto.code);
-
-    this.authService.setAuthCookies(res, accessToken, refreshToken);
-
-    return {
-      message: 'login successfully!!',
-    };
-  }
-
-  @Auth(AuthType.Refresh)
-  @Post('refresh')
-  async refresh(
-    @ActiveUser()
-    user: {
-      userId: string;
-      email: string;
-      refreshToken: string;
-    },
-    @Res({ passthrough: true }) res: express.Response,
-  ) {
-    const { accessToken, refreshToken } = await this.authService.refreshToken(
-      user.userId,
-      user.email,
-      user.refreshToken,
-    );
-
-    this.authService.setAuthCookies(res, accessToken, refreshToken);
-
-    return { message: 'Tokens refreshed' };
+    return this.authService.loginWithTwoFactor(dto.token, req);
   }
 
   @Post('logout')
-  async logout(
-    @ActiveUser('userId') userId: string,
-    @Res({ passthrough: true }) res: express.Response,
-  ) {
-    await this.authService.logout(userId);
-
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('refresh_token', { path: '/api/auth/refresh' });
-
-    return { message: 'Logged out successfully' };
+  logout(@Res() res: express.Response, @Req() req: express.Request) {
+    return new Promise((resolve) => {
+      req.session.destroy(() => {
+        res.clearCookie('connect.id');
+        resolve('Loggout Successfully!!');
+      });
+    });
   }
 }

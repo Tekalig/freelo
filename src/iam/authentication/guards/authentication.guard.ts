@@ -6,29 +6,26 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthType } from '../enums/auth-type.enum';
-import { AccessTokenGuard } from './access-token.guard';
 import { LocalGuard } from './local.guard';
 import { AUTH_TYPE_KEY } from '../decorators/auth.decorator';
-import { RefreshTokenGuard } from './refresh-token.guard';
 import { ApiKeyGuard } from './api-key.guard';
+import { SessionGuard } from './session.guard';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
-  private static readonly defaultAuth = AuthType.Cookies;
+  private static readonly defaultAuth = AuthType.Session;
   private readonly authTypeMap: Record<AuthType, CanActivate | CanActivate[]>;
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly accessTokenGuard: AccessTokenGuard,
+    private readonly sessionGuard: SessionGuard,
     private readonly localGuard: LocalGuard,
-    private readonly refreshTokenGuard: RefreshTokenGuard,
     private readonly apiKeyGuard: ApiKeyGuard,
   ) {
     this.authTypeMap = {
-      [AuthType.Cookies]: this.accessTokenGuard,
+      [AuthType.Session]: this.sessionGuard,
       [AuthType.Local]: this.localGuard,
       [AuthType.ApiKey]: this.apiKeyGuard,
-      [AuthType.Refresh]: this.refreshTokenGuard,
       [AuthType.None]: { canActivate: () => true },
     };
   }

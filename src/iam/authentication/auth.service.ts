@@ -23,67 +23,55 @@ export class AuthService {
   constructor(
     @InjectRepository(User) private readonly user: Repository<User>,
     private readonly hashService: HashingService,
-    private readonly jwtService: JwtService,
     private readonly usersService: UsersService,
     private readonly twoFaSarvice: TwoFaService,
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguation: config.ConfigType<typeof jwtConfig>,
   ) {}
 
   async signIn(
-    userId: string,
-    email: string,
-    emailVerified: boolean,
-    plan: string,
+    user: {
+      id: string;
+      email: string;
+      emailVerified: boolean;
+      plan: string;
+      isTwoFaEnabled: boolean;
+    },
+    req: express.Request,
   ) {
-    const user = await this.usersService.findByIdForFaSecret(userId);
-
     if (user?.isTwoFaEnabled) {
-      const pendingTokenOptions: JwtSignOptions = {
-        secret: this.jwtConfiguation.secret,
-        expiresIn: '5m',
-      };
-
-      const pendingToken = await this.jwtService.signAsync(
-        {
-          sub: userId,
-          twoFaPending: true,
-        },
-        pendingTokenOptions,
-      );
-      return { pendingToken, requiresTwoFactor: true as const };
+      req.session.pendingTwoFactorUserId = user.id;
+      return await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve({ requiresTwoFactor: true });
+        });
+      });
     }
-    return this.generateTokens(userId, email, emailVerified, plan);
+    return this.establishSession(req, user);
   }
 
-  async loginWithTwoFactor(pendingToken: string, code: string) {
-    let payload: { sub: string; twoFaPending: boolean };
+  async loginWithTwoFactor(token: string, req: express.Request) {
+    const pendingUserId = req.session.pendingTwoFactorUserId;
+    if (!pendingUserId) {
+      throw new UnauthorizedException('No pending 2FA session');
+    }
 
-    try {
-      payload = await this.jwtService.verifyAsync(pendingToken);
-    } catch (error) {
-      throw new UnauthorizedException('Invalid or Expired 2FA session');
-    }
-    if (!payload.twoFaPending) {
-      throw new UnauthorizedException('Invalid 2FA session');
-    }
     const isValid = await this.twoFaSarvice.validateLoginToken(
-      payload.sub,
-      code,
+      pendingUserId,
+      token,
     );
-
     if (!isValid) {
-      throw new UnauthorizedException('Invalid 2FA session');
+      throw new UnauthorizedException('Invalid 2FA code');
     }
 
-    const user = await this.usersService.findOne(payload.sub);
-    return this.generateTokens(
-      user.id,
-      user.email,
-      user.emailVerified,
-      user.plan,
-    );
+    delete req.session.pendingTwoFactorUserId;
+
+    const user = await this.usersService.findOne(pendingUserId);
+    return this.establishSession(req, user);
   }
+
   async signUp(signUpDto: SignUpDto) {
     try {
       const user = new User();
@@ -97,32 +85,6 @@ export class AuthService {
         throw new ConflictException('User already exist!!');
       }
     }
-  }
-
-  async logout(userId: string) {
-    await this.usersService.updateHashedRefreshToken(userId, null);
-  }
-
-  async refreshToken(userId: string, email: string, refreshToken: string) {
-    const user = await this.usersService.findByIdWithRefreshToken(userId);
-
-    if (!user || !user.hashedRefreshToken) {
-      throw new UnauthorizedException('Access denied');
-    }
-
-    const inComingHash = this.hashService.hashToken(refreshToken);
-
-    const isMatch = this.hashService.compareHashes(
-      inComingHash,
-      user.hashedRefreshToken,
-    );
-
-    if (!isMatch) {
-      await this.usersService.updateHashedRefreshToken(userId, null);
-      throw new UnauthorizedException('Access denied');
-    }
-
-    return this.generateTokens(userId, email, user.emailVerified, user.plan);
   }
 
   async validateUser(userDto: SignInDto): Promise<Partial<User> | null> {
@@ -144,73 +106,21 @@ export class AuthService {
     return null;
   }
 
-  private async generateTokens(
-    userId: string,
-    email: string,
-    emailVerified: boolean,
-    plan: string,
+  public establishSession(
+    req: express.Request,
+    user: {
+      id: string;
+      email: string;
+      emailVerified: boolean;
+      plan: string;
+      isTwoFaEnabled: boolean;
+    },
   ) {
-    const accessTokenOptions: JwtSignOptions = {
-      secret: this.jwtConfiguation.secret,
-      expiresIn: this.jwtConfiguation.accessTokenTtl,
-      issuer: this.jwtConfiguation.issuer,
-      audience: this.jwtConfiguation.audience,
-    };
-
-    const refreshTokenOptions: JwtSignOptions = {
-      secret: this.jwtConfiguation.refreshSecret,
-      expiresIn: this.jwtConfiguation.refreshTokenTtl,
-    };
-
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        {
-          sub: userId,
-          email: email,
-          emailVerified: emailVerified,
-          plan: plan,
-        },
-        accessTokenOptions,
-      ),
-      this.jwtService.signAsync(
-        {
-          sub: userId,
-          email: email,
-          jti: randomUUID(),
-        },
-        refreshTokenOptions,
-      ),
-    ]);
-
-    const hashedRefreshToken = this.hashService.hashToken(refreshToken);
-
-    await this.usersService.updateHashedRefreshToken(
-      userId,
-      hashedRefreshToken,
-    );
-
-    return { accessToken, refreshToken };
-  }
-
-  public setAuthCookies(
-    res: express.Response,
-    accessToken: string,
-    refreshToken: string,
-  ) {
-    res.cookie('access_token', accessToken, {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 3600000,
-    });
-
-    res.cookie('refresh_token', refreshToken, {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/api/auth/refresh',
-      maxAge: 8640000,
+    return new Promise((resolve, reject) => {
+      req.login(user, (err) => {
+        if (err) return reject(err);
+        resolve({ message: 'Logged in successfully!' });
+      });
     });
   }
 }

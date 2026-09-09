@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { SocialAuthService } from './social-auth.service';
 import { GoogleTokenDto } from './dto/google-token.dto';
 import { AuthService } from '../auth.service';
@@ -14,30 +14,9 @@ export class SocialAuthController {
   ) {}
 
   @Post('google')
-  async googleLogin(
-    @Body() dto: GoogleTokenDto,
-    @Res({ passthrough: true }) res: express.Response,
-  ) {
+  async googleLogin(@Body() dto: GoogleTokenDto, @Req() req: express.Request) {
     const user = await this.socialService.loginWithGoodle(dto.token);
 
-    const result = await this.authService.signIn(
-      user!.id,
-      user!.email,
-      user!.emailVerified,
-      user!.plan,
-    );
-
-    if ('requiresTwoFactor' in result) {
-      return result;
-    }
-
-    this.authService.setAuthCookies(
-      res,
-      result.accessToken,
-      result.refreshToken,
-    );
-    return {
-      message: 'login successfully!!',
-    };
+    return this.authService.signIn(user, req);
   }
 }

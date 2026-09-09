@@ -41,7 +41,6 @@ export class SocialAuthService implements OnModuleInit {
           payload.sub,
           payload.email,
         );
-        return;
       } else {
         user = await this.userService.createFromSocial({
           provider: 'google',
