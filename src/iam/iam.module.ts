@@ -7,16 +7,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 import jwtConfig from 'src/config/jwt.config';
-import { AccessTokenStrategy } from './authentication/strategies/access-token.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
 import { LocalStrategy } from './authentication/strategies/local.strategy';
 import { APP_GUARD } from '@nestjs/core';
-import { AccessTokenGuard } from './authentication/guards/access-token.guard';
 import { LocalGuard } from './authentication/guards/local.guard';
 import { AuthenticationGuard } from './authentication/guards/authentication.guard';
-import { RefreshTokenStrategy } from './authentication/strategies/refresh-token.strategy';
-import { RefreshTokenGuard } from './authentication/guards/refresh-token.guard';
 import { UsersService } from 'src/users/users.service';
 import { RolesModule } from './authorization/roles/roles.module';
 import { Role } from './authorization/roles/entities/role.entity';
@@ -34,6 +30,8 @@ import { SocialAuthService } from './authentication/social/social-auth.service';
 import { TwoFaService } from './authentication/2fa/two-fa.service';
 import { TwoFaController } from './authentication/2fa/two-fa.controller';
 import googleConfig from 'src/config/google.config';
+import { UserSerializer } from './authentication/serializer/user-serializer';
+import { SessionGuard } from './authentication/guards/session.guard';
 
 @Module({
   imports: [
@@ -41,7 +39,7 @@ import googleConfig from 'src/config/google.config';
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(googleConfig),
-    PassportModule,
+    PassportModule.register({ session: true }),
     RolesModule,
     PermissionModule,
   ],
@@ -59,19 +57,17 @@ import googleConfig from 'src/config/google.config';
       useClass: PoliciesGuard,
     },
     ApiKeyGuard,
-    AccessTokenGuard,
-    RefreshTokenGuard,
     RequireClaimGuard,
     LocalGuard,
     AuthService,
-    AccessTokenStrategy,
     LocalStrategy,
-    RefreshTokenStrategy,
     UsersService,
     CaslAbilityFactory,
     ApiKeyService,
     SocialAuthService,
     TwoFaService,
+    UserSerializer,
+    SessionGuard,
   ],
   controllers: [
     AuthController,

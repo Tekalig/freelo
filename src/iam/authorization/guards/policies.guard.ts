@@ -10,7 +10,8 @@ import {
   CHECK_POLICIES_KEY,
   PolicyHandlerType,
 } from '../decorators/policies.decorator';
-
+import { ActiveUserWithRoles } from 'src/iam/interfaces/active-user-roles.interface';
+import express from 'express';
 @Injectable()
 export class PoliciesGuard implements CanActivate {
   constructor(
@@ -27,7 +28,7 @@ export class PoliciesGuard implements CanActivate {
     if (policyHandlers.length === 0) return true;
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user: ActiveUserWithRoles = request.user;
 
     if (!user) throw new ForbiddenException('No authenticated user found');
 

@@ -11,12 +11,11 @@ import {
 import { PermissionService } from './permission.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { CheckPolicies } from '../decorators/policies.decorator';
 import { Action } from '../action.enum';
 
 @ApiTags('permission')
-@ApiCookieAuth('access-token')
 @Controller('permission')
 @CheckPolicies((ability) => ability.can(Action.Manage, 'all'))
 export class PermissionController {

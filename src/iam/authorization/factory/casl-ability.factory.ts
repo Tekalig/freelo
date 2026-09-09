@@ -1,24 +1,12 @@
 import {
   AbilityBuilder,
   createMongoAbility,
-  ExtractSubjectType,
   MongoAbility,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
+import { ActiveUserWithRoles } from 'src/iam/interfaces/active-user-roles.interface';
 
 export type AppAbility = MongoAbility<[string, string]>;
-
-interface ActiveUserWithRoles {
-  userId: string;
-  roles: {
-    name: string;
-    permissions: {
-      action: string;
-      subject: string;
-      conditions: Record<string, any> | null;
-    }[];
-  }[];
-}
 
 @Injectable()
 export class CaslAbilityFactory {

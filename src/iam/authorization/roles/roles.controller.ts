@@ -11,12 +11,11 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { CheckPolicies } from '../decorators/policies.decorator';
 import { Action } from '../action.enum';
 
 @ApiTags('Role')
-@ApiCookieAuth('access-token')
 @Controller('roles')
 @CheckPolicies((ability) => ability.can(Action.Manage, 'all'))
 export class RolesController {
