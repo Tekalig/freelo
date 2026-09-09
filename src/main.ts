@@ -3,6 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import session from 'express-session';
+import { RedisStore } from 'connect-redis';
+import passport from 'passport';
+import { REDIS_SESSION_CLIENT } from './redis/redis.constant';
+import { RedisClientType } from 'redis';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,17 +24,32 @@ async function bootstrap() {
     }),
   );
 
+  const redisClient: RedisClientType = app.get(REDIS_SESSION_CLIENT);
+
+  app.use(
+    session({
+      store: new RedisStore({ client: redisClient, prefix: 'freelo-session:' }),
+      secret: Buffer.from(process.env.SESSION_SECRET as string),
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        sameSite: true,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+      },
+    }),
+  );
+
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   app.use(cookieParser.default());
 
   const config = new DocumentBuilder()
     .setTitle('Freelo API')
     .setDescription('Freelance Business Management Platform API')
     .setVersion('1.0')
-    .addCookieAuth('access_token', {
-      type: 'apiKey',
-      in: 'cookie',
-      name: 'access_token',
-    })
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

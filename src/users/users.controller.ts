@@ -10,12 +10,11 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiCookieAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { CheckPolicies } from 'src/iam/authorization/decorators/policies.decorator';
 import { Action } from 'src/iam/authorization/action.enum';
 
 @ApiTags('Users')
-@ApiCookieAuth('access_token')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
