@@ -12,6 +12,7 @@ import { SignUpDto } from './dto/sign-up.dto';
 import { UsersService } from 'src/users/users.service';
 import express from 'express';
 import { TwoFaService } from './2fa/two-fa.service';
+import { Role } from '../authorization/roles/entities/role.entity';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,7 @@ export class AuthService {
       emailVerified: boolean;
       plan: string;
       isTwoFaEnabled: boolean;
+      roles: Role[];
     },
     req: express.Request,
   ) {
@@ -69,12 +71,15 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto) {
     try {
-      const user = new User();
-      user.fullName = signUpDto.full_name;
-      user.email = signUpDto.email;
-      user.password = await this.hashService.hash(signUpDto.password);
+      const password = await this.hashService.hash(signUpDto.password);
+      const newUser = this.user.create({
+        fullName: signUpDto.full_name,
+        email: signUpDto.email,
+        password: password,
+      });
 
-      await this.user.save(user);
+      const user = await this.user.save(newUser);
+      await this.usersService.assignDefualtRole(user.id);
     } catch (err) {
       if (err.code === '23505') {
         throw new ConflictException('User already exist!!');
@@ -85,10 +90,11 @@ export class AuthService {
   async validateUser(userDto: SignInDto): Promise<Partial<User> | null> {
     const user = await this.user
       .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'role')
+      .leftJoinAndSelect('role.permissions', 'permission')
       .addSelect('user.password')
       .where('user.email = :email', { email: userDto.email })
       .getOne();
-
     if (
       user &&
       (await this.hashService.compare(userDto.password, user.password))
@@ -109,6 +115,7 @@ export class AuthService {
       emailVerified: boolean;
       plan: string;
       isTwoFaEnabled: boolean;
+      roles: Role[];
     },
   ) {
     return new Promise((resolve, reject) => {

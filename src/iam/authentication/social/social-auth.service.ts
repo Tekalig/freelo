@@ -50,7 +50,7 @@ export class SocialAuthService implements OnModuleInit {
         });
       }
     }
-
+    await this.userService.assignDefualtRole(user.id);
     return user;
   }
 

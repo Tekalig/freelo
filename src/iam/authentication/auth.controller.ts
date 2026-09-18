@@ -16,6 +16,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { VerifyTwoFaDto } from './2fa/dto/verify-2fa.dto';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
+import { Role } from '../authorization/roles/entities/role.entity';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -40,6 +41,7 @@ export class AuthController {
       emailVerified: boolean;
       plan: string;
       isTwoFaEnabled: boolean;
+      roles: Role[];
     },
     @Req() req: express.Request,
   ) {
