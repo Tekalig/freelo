@@ -12,7 +12,6 @@ export type AppAbility = MongoAbility<[string, string]>;
 export class CaslAbilityFactory {
   createForUser(user: ActiveUserWithRoles) {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
-
     for (const role of user.roles ?? []) {
       for (const permission of role.permissions) {
         const resolvedCondtions = this.resolvePlaceholders(
