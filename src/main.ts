@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import session from 'express-session';
 import { RedisStore } from 'connect-redis';
@@ -44,15 +43,13 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.use(cookieParser.default());
-
-  const config = new DocumentBuilder()
+  const configSwagger = new DocumentBuilder()
     .setTitle('Freelo API')
     .setDescription('Freelance Business Management Platform API')
     .setVersion('1.0')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: { withCredentials: true, persistAuthorization: true },
   });
