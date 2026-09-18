@@ -20,7 +20,10 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.usersRepo.findOne({ where: { id: id } });
+    const user = await this.usersRepo.findOne({
+      where: { id: id },
+      relations: { roles: true },
+    });
 
     if (!user) {
       throw new NotFoundException(`User Not Found!`);
@@ -66,6 +69,18 @@ export class UsersService {
     return await this.usersRepo.update(id, {
       hashedRefreshToken: hashedRefreshToken,
     });
+  }
+
+  async assignDefualtRole(userId: string) {
+    const defualtRole = await this.roleRepo.findOne({
+      where: { name: 'owner' },
+    });
+
+    if (!defualtRole) throw new Error('Role Not Found!!');
+
+    const user = await this.findOne(userId);
+    user.roles = [defualtRole];
+    return this.usersRepo.save(user);
   }
 
   async assignRole(userId: string, roleId: string) {
