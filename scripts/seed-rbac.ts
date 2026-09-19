@@ -138,8 +138,6 @@ async function seed() {
       fullName: 'Admin User',
       email: adminEmail,
 
-      // Your TypeORM error indicates the entity property
-      // is called `password`, not `passwordHash`.
       password: passwordHash,
     });
 
@@ -147,7 +145,7 @@ async function seed() {
     // Uncomment and use the correct relation property
     // from your User entity.
 
-    // adminUser.roles = [adminRole];
+    adminUser.roles = [adminRole];
 
     await userRepo.save(adminUser);
 
