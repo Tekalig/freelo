@@ -16,6 +16,7 @@ import { Action } from 'src/iam/authorization/action.enum';
 
 @ApiTags('Users')
 @Controller('users')
+@CheckPolicies((ability) => ability.can(Action.Manage, 'User'))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -26,13 +27,11 @@ export class UsersController {
   }
 
   @Get(':id')
-  @CheckPolicies((ability) => ability.can(Action.Read, 'User'))
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @CheckPolicies((ability) => ability.can(Action.Update, 'User'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -41,7 +40,6 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @CheckPolicies((ability) => ability.can(Action.Delete, 'User'))
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.remove(id);
   }
