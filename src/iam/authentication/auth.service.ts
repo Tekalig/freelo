@@ -84,6 +84,7 @@ export class AuthService {
       if (err.code === '23505') {
         throw new ConflictException('User already exist!!');
       }
+      throw err;
     }
   }
 
