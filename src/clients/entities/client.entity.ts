@@ -16,7 +16,7 @@ export class Client {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column({ nullable: true })

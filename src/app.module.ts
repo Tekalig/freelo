@@ -6,6 +6,7 @@ import * as joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule } from './clients/clients.module';
 import { RedisModule } from './redis/redis.module';
+import { ProjectsModule } from './projects/projects.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
@@ -57,6 +58,7 @@ import googleConfig from './config/google.config';
     IamModule,
     ClientsModule,
     RedisModule,
+    ProjectsModule,
   ],
   controllers: [],
   providers: [],

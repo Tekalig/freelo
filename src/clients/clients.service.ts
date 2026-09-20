@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,12 +15,19 @@ export class ClientsService {
     @InjectRepository(Client) private readonly clientRepo: Repository<Client>,
   ) {}
 
-  create(userId: string, createClientDto: CreateClientDto) {
-    const client = this.clientRepo.create({
-      ...createClientDto,
-      user: { id: userId },
-    });
-    return this.clientRepo.save(client);
+  async create(userId: string, createClientDto: CreateClientDto) {
+    try {
+      const client = this.clientRepo.create({
+        ...createClientDto,
+        user: { id: userId },
+      });
+      return await this.clientRepo.save(client);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('User already exist!!');
+      }
+      throw error;
+    }
   }
 
   findAllForUser(userId: string) {
