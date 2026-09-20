@@ -4,9 +4,7 @@ import { BcryptService } from './hashing/bcrypto.service';
 import { AuthController } from './authentication/auth.controller';
 import { AuthService } from './authentication/auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
-import jwtConfig from 'src/config/jwt.config';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule } from '@nestjs/config';
 import { LocalStrategy } from './authentication/strategies/local.strategy';
@@ -36,8 +34,6 @@ import { SessionGuard } from './authentication/guards/session.guard';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, ApiKey, SocialAccount]),
-    JwtModule.registerAsync(jwtConfig.asProvider()),
-    ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(googleConfig),
     PassportModule.register({ session: true }),
     RolesModule,

@@ -7,8 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule } from './clients/clients.module';
 import { RedisModule } from './redis/redis.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TimeTrackingModule } from './time-tracking/time-tracking.module';
 import databaseConfig from './config/database.config';
-import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
 import googleConfig from './config/google.config';
 
@@ -17,7 +17,7 @@ import googleConfig from './config/google.config';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig, jwtConfig, redisConfig, googleConfig],
+      load: [databaseConfig, redisConfig, googleConfig],
       validationSchema: joi.object({
         NODE_ENV: joi.string().valid('dev', 'test', 'pro').default('dev'),
         DB_HOST: joi.string().required(),
@@ -25,11 +25,6 @@ import googleConfig from './config/google.config';
         DB_USERNAME: joi.string().required(),
         DB_PASSWORD: joi.string().required(),
         DB_DATABASE: joi.string().required(),
-        JWT_SECRET: joi.string().required(),
-        JWT_REFRESH_SECRET: joi.string().required(),
-        JWT_TOKEN_AUDIENCE: joi.string().required(),
-        JWT_TOKEN_ISSUER: joi.string().required(),
-        JWT_ACCESS_TOKEN_TTL: joi.number().default(3600).required(),
         GOOGLE_CLIENT_ID: joi.string().required(),
         GOOGLE_CLIENT_SECRET: joi.string().required(),
         GITHUB_CLIENT_ID: joi.string().required(),
@@ -59,6 +54,7 @@ import googleConfig from './config/google.config';
     ClientsModule,
     RedisModule,
     ProjectsModule,
+    TimeTrackingModule,
   ],
   controllers: [],
   providers: [],
