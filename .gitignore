@@ -1,0 +1,8 @@
+# /ENV
+.env
+
+# node modules
+/node_modules
+
+# generated files
+dist/
