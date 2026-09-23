@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TimeTrackingController } from './time-tracking.controller';
-import { TimeTrackingService } from './time-tracking.service';
+import { TimeTrackingController } from './time-tracker.controller';
+import { TimeTrackingService } from './time-tracker.service';
 
 describe('TimeTrackingController', () => {
   let controller: TimeTrackingController;

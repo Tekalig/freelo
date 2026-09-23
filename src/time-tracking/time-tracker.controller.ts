@@ -8,7 +8,7 @@ import {
   Delete,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { TimeTrackingService } from './time-tracking.service';
+import { TimeTrackingService } from './time-tracker.service';
 import { StartTimerDto } from './dto/start-timer.dto';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 import { ActiveUser } from 'src/iam/decorators/active-user.decorator';
