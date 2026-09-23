@@ -1,0 +1,27 @@
+import { Module } from '@nestjs/common';
+import { InvoiceService } from './invoice.service';
+import { InvoicingController } from './invoice.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Invoice } from './entities/invoice.entity';
+import { Payment } from './entities/payment.entity';
+import { InvoiceLineItem } from './entities/invoice-line-item.entity';
+import { Client } from 'src/clients/entities/client.entity';
+import { ConfigModule } from '@nestjs/config';
+import { InvoicePdfService } from './invoice-pdf.service';
+import { StripeWebhookController } from './stripe-webhook.controller';
+import stripeConfig from 'src/config/stripe.config';
+import { ProjectsModule } from 'src/projects/projects.module';
+import { TimeTrackingModule } from 'src/time-tracking/time-tracker.module';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Invoice, Payment, InvoiceLineItem, Client]),
+    ConfigModule.forFeature(stripeConfig),
+    ProjectsModule,
+    TimeTrackingModule,
+  ],
+  controllers: [InvoicingController, StripeWebhookController],
+  providers: [InvoiceService, InvoicePdfService],
+  exports: [InvoiceService],
+})
+export class InvoicingModule {}
