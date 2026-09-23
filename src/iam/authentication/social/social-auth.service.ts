@@ -4,7 +4,7 @@ import {
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as config from '@nestjs/config';
+import type { ConfigType } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import googleConfig from 'src/config/google.config';
 import { UsersService } from 'src/users/users.service';
@@ -22,7 +22,7 @@ export class SocialAuthService implements OnModuleInit {
 
   constructor(
     @Inject(googleConfig.KEY)
-    private readonly googleAuthConfig: config.ConfigType<typeof googleConfig>,
+    private readonly googleAuthConfig: ConfigType<typeof googleConfig>,
     private readonly userService: UsersService,
   ) {}
 
