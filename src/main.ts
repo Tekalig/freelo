@@ -7,6 +7,7 @@ import { RedisStore } from 'connect-redis';
 import passport from 'passport';
 import { REDIS_SESSION_CLIENT } from './redis/redis.constant';
 import { RedisClientType } from 'redis';
+import { json, raw } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -42,6 +43,8 @@ async function bootstrap() {
 
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use('/api/webhooks/stripe', raw({ type: 'application/json' }));
+  app.use(json());
 
   const configSwagger = new DocumentBuilder()
     .setTitle('Freelo API')
