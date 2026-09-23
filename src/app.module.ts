@@ -7,17 +7,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule } from './clients/clients.module';
 import { RedisModule } from './redis/redis.module';
 import { ProjectsModule } from './projects/projects.module';
-import { TimeTrackingModule } from './time-tracking/time-tracking.module';
+import { TimeTrackingModule } from './time-tracking/time-tracker.module';
+import { InvoicingModule } from './invoicing/invoice.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import googleConfig from './config/google.config';
+import stripeConfig from './config/stripe.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig, redisConfig, googleConfig],
+      load: [databaseConfig, redisConfig, googleConfig, stripeConfig],
       validationSchema: joi.object({
         NODE_ENV: joi.string().valid('dev', 'test', 'pro').default('dev'),
         DB_HOST: joi.string().required(),
@@ -32,6 +34,8 @@ import googleConfig from './config/google.config';
         FA_APP_NAME: joi.string().required(),
         REDIS_HOST: joi.string().required(),
         REDIS_PORT: joi.number().default(6379).required(),
+        STRIPE_WEBHOOK_SECRET: joi.string().required(),
+        STRIPE_SECRET_KEY: joi.string().required(),
       }),
     }),
 
@@ -55,6 +59,7 @@ import googleConfig from './config/google.config';
     RedisModule,
     ProjectsModule,
     TimeTrackingModule,
+    InvoicingModule,
   ],
   controllers: [],
   providers: [],
