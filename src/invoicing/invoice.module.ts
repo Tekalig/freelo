@@ -12,11 +12,13 @@ import { StripeWebhookController } from './stripe-webhook.controller';
 import stripeConfig from 'src/config/stripe.config';
 import { ProjectsModule } from 'src/projects/projects.module';
 import { TimeTrackingModule } from 'src/time-tracking/time-tracker.module';
+import businessProfileConfig from 'src/config/business-profile.config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Invoice, Payment, InvoiceLineItem, Client]),
     ConfigModule.forFeature(stripeConfig),
+    ConfigModule.forFeature(businessProfileConfig),
     ProjectsModule,
     TimeTrackingModule,
   ],
