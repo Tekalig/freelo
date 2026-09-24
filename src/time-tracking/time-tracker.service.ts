@@ -7,7 +7,7 @@ import {
 import { StartTimerDto } from './dto/start-timer.dto';
 import { UpdateTimeEntryDto } from './dto/update-time-entry.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TimeEntry } from './entities/time-tracking.entity';
+import { TimeEntry } from './entities/time-entry.entity';
 import { IsNull, Repository } from 'typeorm';
 import { ProjectsService } from 'src/projects/projects.service';
 import { CreateManualEntryDto } from './dto/create-manual-entry.dto';
@@ -150,11 +150,11 @@ export class TimeTrackingService {
   findUnbilledForProject(userId: string, projectId: string) {
     return this.timeTrakerRepo
       .createQueryBuilder('entry')
-      .where('entry.user_id = :userId', { userId })
-      .andWhere('entry.project_id = :projectId', { projectId })
-      .andWhere('entry.is_billable = true')
-      .andWhere('entry.is_invoiced = false')
-      .andWhere('entry.ended_at IS NOT NULL')
+      .where('entry.user.id = :userId', { userId })
+      .andWhere('entry.project.id = :projectId', { projectId })
+      .andWhere('entry.isBillable = true')
+      .andWhere('entry.isInvoiced = false')
+      .andWhere('entry.endedAt IS NOT NULL')
       .getMany();
   }
 }
