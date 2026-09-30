@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { InvoicingController } from './invoice.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,6 +13,10 @@ import stripeConfig from 'src/config/stripe.config';
 import { ProjectsModule } from 'src/projects/projects.module';
 import { TimeTrackingModule } from 'src/time-tracking/time-tracker.module';
 import businessProfileConfig from 'src/config/business-profile.config';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotificationsModule } from 'src/notifications/notifications.module';
+import { NOTIFICATIONS_QUEUE } from 'src/notifications/notifications.constant';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -21,9 +25,13 @@ import businessProfileConfig from 'src/config/business-profile.config';
     ConfigModule.forFeature(businessProfileConfig),
     ProjectsModule,
     TimeTrackingModule,
+    BullModule.registerQueue({
+      name: NOTIFICATIONS_QUEUE,
+    }),
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [InvoicingController, StripeWebhookController],
-  providers: [InvoiceService, InvoicePdfService],
+  providers: [InvoiceService, InvoicePdfService, NotificationsService],
   exports: [InvoiceService],
 })
 export class InvoicingModule {}

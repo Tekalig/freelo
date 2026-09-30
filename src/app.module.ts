@@ -9,17 +9,27 @@ import { RedisModule } from './redis/redis.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TimeTrackingModule } from './time-tracking/time-tracker.module';
 import { InvoicingModule } from './invoicing/invoice.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import googleConfig from './config/google.config';
 import stripeConfig from './config/stripe.config';
+import mailerConfig from './config/mailer.config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [databaseConfig, redisConfig, googleConfig, stripeConfig],
+      load: [
+        databaseConfig,
+        redisConfig,
+        googleConfig,
+        stripeConfig,
+        mailerConfig,
+      ],
       validationSchema: joi.object({
         NODE_ENV: joi.string().valid('dev', 'test', 'pro').default('dev'),
         DB_HOST: joi.string().required(),
@@ -36,6 +46,11 @@ import stripeConfig from './config/stripe.config';
         REDIS_PORT: joi.number().default(6379).required(),
         STRIPE_WEBHOOK_SECRET: joi.string().required(),
         STRIPE_SECRET_KEY: joi.string().required(),
+        MAIL_HOST: joi.string().required(),
+        MAIL_PORT: joi.number().default(587).required(),
+        MAIL_USER: joi.string().required(),
+        MAIL_PASSWORD: joi.string().required(),
+        MAIL_FROM: joi.string().required(),
       }),
     }),
 
@@ -53,6 +68,7 @@ import stripeConfig from './config/stripe.config';
         synchronize: true,
       }),
     }),
+    ScheduleModule.forRoot(),
     UsersModule,
     IamModule,
     ClientsModule,
@@ -60,6 +76,8 @@ import stripeConfig from './config/stripe.config';
     ProjectsModule,
     TimeTrackingModule,
     InvoicingModule,
+    NotificationsModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],

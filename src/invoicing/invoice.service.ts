@@ -17,6 +17,7 @@ import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 import { InvoiceLineItem } from './entities/invoice-line-item.entity';
 import { InvoiceStatus } from './enums/invoice-status.enum';
 import { PaymentStatus } from './enums/payment-status.enum';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class InvoiceService {
@@ -28,6 +29,7 @@ export class InvoiceService {
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
     private readonly projectService: ProjectsService,
+    private readonly notificationsService: NotificationsService,
     private readonly timeTrackerService: TimeTrackingService,
     private readonly datasource: DataSource,
     @Inject(stripeConfig.KEY)
@@ -136,11 +138,20 @@ export class InvoiceService {
     return invoice;
   }
 
+  findOneRaw(id: string) {
+    return this.invoiceRepo.findOne({
+      where: { id },
+      relations: { client: true, lineItems: true, user: true },
+    });
+  }
+
   async markAsSent(userId: string, id: string) {
     const invoice = await this.findOne(userId, id);
-
     invoice.status = InvoiceStatus.Sent;
-    return this.invoiceRepo.save(invoice);
+
+    const saved = await this.invoiceRepo.save(invoice);
+    await this.notificationsService.queueInvoiceSent(saved.id);
+    return saved;
   }
 
   async createPaymentLink(userId: string, invoiceId: string) {
@@ -201,5 +212,6 @@ export class InvoiceService {
     });
 
     await this.paymentRepo.save(paymant);
+    await this.notificationsService.queueInvoicePaid(invoice.id);
   }
 }

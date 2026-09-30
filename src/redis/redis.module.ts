@@ -15,6 +15,7 @@ import { createClient, RedisClientType } from 'redis';
         const client = new Redis({
           host: config.host,
           port: config.port,
+          maxRetriesPerRequest: null,
         });
         client.on('error', (err) => {
           console.error('Redis(queue) client error: ', err);
