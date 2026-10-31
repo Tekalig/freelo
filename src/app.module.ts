@@ -9,6 +9,7 @@ import { RedisModule } from './redis/redis.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TimeTrackingModule } from './time-tracking/time-tracker.module';
 import { InvoicingModule } from './invoicing/invoice.module';
+import { FilesModule } from './files/files.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import googleConfig from './config/google.config';
@@ -60,6 +61,7 @@ import stripeConfig from './config/stripe.config';
     ProjectsModule,
     TimeTrackingModule,
     InvoicingModule,
+    FilesModule,
   ],
   controllers: [],
   providers: [],
